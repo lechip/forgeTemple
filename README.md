@@ -39,8 +39,11 @@ flowchart TD
 Run these from the root of your project:
 
 ```bash
-FACTORY=/Users/oscarbarrios/Projects/forgeTemple
+# Get a copy of the factory in a temporary folder
+FACTORY="$(mktemp -d)"
+git clone --depth 1 https://github.com/lechip/forgeTemple.git "$FACTORY"
 
+# Copy the factory files into your project
 mkdir -p .claude/skills .claude/agents docs factory/jobs
 cp -R "$FACTORY/.claude/skills/factory" .claude/skills/
 cp "$FACTORY"/.claude/agents/*.md .claude/agents/
@@ -48,7 +51,12 @@ cp "$FACTORY/factory/dashboard.html" factory/
 touch factory/jobs/.gitkeep
 cp -n "$FACTORY/docs/coding-standards.md" docs/
 printf '\nfactory/jobs/*\n!factory/jobs/.gitkeep\n' >> .gitignore
+
+# Remove the temporary copy
+rm -rf "$FACTORY"
 ```
+
+If you already have a clone of this repository, skip the `git clone` line and set `FACTORY` to the path of your clone. Then also skip the `rm -rf` line.
 
 Then do these two steps:
 
@@ -62,13 +70,13 @@ The factory reads the project commands from `CLAUDE.md`. Add this section and ch
 ```markdown
 ## Commands
 
-- setup: `yarn install`
-- test: `yarn test`
-- test integration: `yarn test:integration`
-- test e2e: `yarn test:e2e`
-- lint: `yarn lint`
-- typecheck: `yarn typecheck`
-- build: `yarn build`
+- setup: `npm install`
+- test: `npm test`
+- test integration: `npm run test:integration`
+- test e2e: `npm run test:e2e`
+- lint: `npm run lint`
+- typecheck: `npm run typecheck`
+- build: `npm run build`
 ```
 
 `setup`, `test`, `lint`, and `typecheck` are necessary. The others are optional.

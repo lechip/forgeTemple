@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Factory</title>
+<style>
+  :root {
+    --bg: #f6f6f4; --card: #ffffff; --text: #1c1c1a; --muted: #6b6b66; --line: #e2e2dd;
+    --done: #2f7d4f; --now: #2563c9; --wait: #b26a00; --bad: #b3261e; --todo: #c9c9c3;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #161615; --card: #1f1f1e; --text: #ecece8; --muted: #9a9a94; --line: #33332f;
+      --done: #5fbf85; --now: #7aa7f5; --wait: #e0a040; --bad: #f2776f; --todo: #44443f;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 24px 16px; background: var(--bg); color: var(--text);
+         font: 15px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  main { max-width: 860px; margin: 0 auto; }
+  header { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-bottom: 16px; }
+  h1 { font-size: 20px; margin: 0; }
+  #status { color: var(--muted); font-size: 13px; }
+  .job { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; margin-bottom: 12px; }
+  .job.done { opacity: .6; }
+  .top { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  .title { font-weight: 600; }
+  .id, .meta { color: var(--muted); font-size: 13px; }
+  .id { font-family: ui-monospace, Menlo, monospace; }
+  .steps { display: flex; gap: 4px; margin: 12px 0 8px; }
+  .step { flex: 1; min-width: 0; }
+  .bar { height: 6px; border-radius: 3px; background: var(--todo); }
+  .step.done .bar { background: var(--done); }
+  .step.now .bar { background: var(--now); }
+  .step.wait .bar { background: var(--wait); }
+  .step.bad .bar { background: var(--bad); }
+  .step span { display: block; margin-top: 4px; font-size: 11px; color: var(--muted);
+               white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .step.now span, .step.wait span, .step.bad span { color: var(--text); font-weight: 600; }
+  .tags { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; font-size: 12px; }
+  .tag { border: 1px solid var(--line); border-radius: 999px; padding: 1px 8px; }
+  .tag.good { color: var(--done); border-color: var(--done); }
+  .tag.warn { color: var(--wait); border-color: var(--wait); }
+  .tag.bad { color: var(--bad); border-color: var(--bad); }
+  .blocked { margin-top: 8px; color: var(--bad); font-size: 13px; }
+  a { color: var(--now); }
+  .empty { color: var(--muted); padding: 32px 0; text-align: center; }
+  code { font-family: ui-monospace, Menlo, monospace; font-size: 13px; }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>Factory</h1>
+    <div id="status">Loading…</div>
+  </header>
+  <div id="jobs"></div>
+</main>
+<script>
+  // Reads factory/jobs/<id>/job.json through the directory listing of
+  // `python3 -m http.server`. See README.md for the start command.
+  const STAGES = [
+    ['spec', 'Spec'],
+    ['spec-approval', 'Your OK'],
+    ['build', 'Build'],
+    ['review-code', 'Code review'],
+    ['review-security', 'Security'],
+    ['approve', 'Approve'],
+    ['pr-open', 'PR review'],
+    ['done', 'Done'],
+  ];
+  const HUMAN_STAGES = new Set(['spec-approval', 'pr-open']);
+  const REFRESH_MS = 2000;
+
+  const el = (tag, cls, text) => {
+    const node = document.createElement(tag);
+    if (cls) node.className = cls;
+    if (text != null) node.textContent = text;
+    return node;
+  };
+
+  async function listJobIds() {
+    const res = await fetch('jobs/', { cache: 'no-store' });
+    if (!res.ok) throw new Error('no jobs folder');
+    const doc = new DOMParser().parseFromString(await res.text(), 'text/html');
+    return [...doc.querySelectorAll('a')]
+      .map(a => a.getAttribute('href') || '')
+      .filter(h => h.endsWith('/') && !h.startsWith('.') && !h.startsWith('/'))
+      .map(h => decodeURIComponent(h.slice(0, -1)));
+  }
+
+  async function loadJob(id) {
+    try {
+      const res = await fetch(`jobs/${encodeURIComponent(id)}/job.json`, { cache: 'no-store' });
+      return res.ok ? await res.json() : null;
+    } catch { return null; }
+  }
+
+  function stepClass(index, current, job) {
+    if (job.stage === 'done' || index < current) return 'done';
+    if (index > current) return '';
+    if (job.blocked) return 'bad';
+    return HUMAN_STAGES.has(job.stage) ? 'wait' : 'now';
+  }
+
+  function verdictTag(label, value) {
+    if (!value) return null;
+    const good = value === 'PASS' || value === 'APPROVE';
+    return el('span', 'tag ' + (good ? 'good' : 'warn'), `${label}: ${value}`);
+  }
+
+  function renderJob(job) {
+    const card = el('section', 'job' + (job.stage === 'done' ? ' done' : ''));
+    const top = el('div', 'top');
+    const left = el('div');
+    left.append(el('div', 'title', job.title || job.id), el('div', 'id', job.id));
+    const when = job.updatedAt ? new Date(job.updatedAt).toLocaleTimeString() : '';
+    top.append(left, el('div', 'meta', [job.mode, when].filter(Boolean).join(' · ')));
+    card.append(top);
+
+    const current = STAGES.findIndex(([key]) => key === job.stage);
+    const steps = el('div', 'steps');
+    STAGES.forEach(([, label], i) => {
+      const step = el('div', 'step ' + stepClass(i, current, job));
+      step.append(el('div', 'bar'), el('span', '', label));
+      steps.append(step);
+    });
+    card.append(steps);
+
+    const tags = el('div', 'tags');
+    if (job.round > 1) tags.append(el('span', 'tag', `round ${job.round}`));
+    const verdicts = job.verdicts || {};
+    [verdictTag('code', verdicts.code), verdictTag('security', verdicts.security),
+     verdictTag('decision', job.decision)].forEach(t => t && tags.append(t));
+    if (HUMAN_STAGES.has(job.stage) && !job.blocked) tags.append(el('span', 'tag warn', 'waits for you'));
+    if (typeof job.prUrl === 'string' && /^https:\/\//.test(job.prUrl)) {
+      const link = el('a', '', 'Open PR');
+      link.href = job.prUrl; link.target = '_blank'; link.rel = 'noopener';
+      tags.append(link);
+    }
+    if (tags.children.length) card.append(tags);
+    if (job.blocked) card.append(el('div', 'blocked', 'Stopped: ' + job.blocked));
+    return card;
+  }
+
+  async function refresh() {
+    const status = document.getElementById('status');
+    const root = document.getElementById('jobs');
+    try {
+      const ids = await listJobIds();
+      const jobs = (await Promise.all(ids.map(loadJob))).filter(Boolean);
+      jobs.sort((a, b) => String(b.id).localeCompare(String(a.id)));
+      root.replaceChildren(...(jobs.length
+        ? jobs.map(renderJob)
+        : [el('div', 'empty', 'No jobs yet. Run /factory <feature> in Claude Code.')]));
+      status.textContent = `${jobs.length} job(s) · ${new Date().toLocaleTimeString()}`;
+    } catch {
+      const help = el('div', 'empty');
+      help.append('Cannot read the jobs folder. Start the server from the repository root: ',
+                  el('code', '', 'python3 -m http.server 5175 --directory factory'));
+      root.replaceChildren(help);
+      status.textContent = 'offline';
+    }
+  }
+
+  refresh();
+  setInterval(refresh, REFRESH_MS);
+</script>
+</body>
+</html>

@@ -193,12 +193,19 @@ Then end your turn.
 `/forgetemple:factory rework <job-id> <note>`
 
 1. Read `job.json`. The job must exist and must not be `done`. Resolve the agent models again and update `models`.
-2. Write the note to `JOB_DIR/rework-<k>.md` (the human's words, unchanged). This file is the only file you write other than `job.json`.
+2. Write the note to `JOB_DIR/rework-<k>.md` (the human's words, unchanged). Other than `job.json`, you write only this file and `rework-<k>-comment.md`, and only the script in step 7 writes `rework-<k>-comment.md`.
 3. Add 1 to `round`. Set verdicts and `decision` to `null`, `blocked` to `null`, `stage: "build"`. The rework round limit starts again from zero.
 4. Start a new `implementer` and give it `rework-<k>.md`.
 5. Run steps 5, 6, and 7.
-6. Run the checks from step 8.1, then `git push`. The open PR updates. If no PR exists, do step 8.
-7. Add a PR comment that says what changed: `gh pr comment <prUrl> --body-file <JOB_DIR>/decision.md`.
+6. Run the checks from step 8.1. If no PR exists, do step 8 and skip step 7. If a PR exists, in `WORK_DIR`:
+   - `OLD=$(git rev-parse origin/factory/<job-id>)`
+   - `git push`. The open PR updates.
+   - `NEW=$(git rev-parse HEAD)`
+7. Update the PR, in `WORK_DIR`:
+   - `gh pr edit <prUrl> --body-file <JOB_DIR>/decision.md`. The PR description now shows the latest decision.
+   - `bash ${CLAUDE_PLUGIN_ROOT}/scripts/rework-comment.sh <JOB_DIR> <k> $OLD $NEW`. It writes `JOB_DIR/rework-<k>-comment.md` from the job files and git. Do not write or edit this file yourself.
+   - `gh pr comment <prUrl> --body-file <JOB_DIR>/rework-<k>-comment.md`.
+   - If the script fails, post no comment. Tell the human the error. The push in step 6 stays.
 8. Report as in step 9.
 
 ## Clean

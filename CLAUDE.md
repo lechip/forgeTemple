@@ -13,6 +13,7 @@ This repository contains only the factory. It has no application code, no packag
 - `plugins/forgetemple/agents/`: 5 agents: `spec-writer`, `implementer`, `reviewer-code`, `reviewer-security`, `approver`.
 - `plugins/forgetemple/templates/coding-standards.md`: the code rules and test rules. `init` copies it to `docs/coding-standards.md` in the project, and `reviewer-code` applies them there.
 - `plugins/forgetemple/templates/dashboard.html`: shows the state of each job. `init` copies it to `factory/dashboard.html` in the project.
+- `plugins/forgetemple/scripts/rework-comment.sh`: writes the short PR comment of a rework from the job files and git.
 - `factory/jobs/<job-id>/` in the project: runtime files of each job. Git ignores them.
 
 ## Design rules

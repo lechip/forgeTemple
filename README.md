@@ -136,7 +136,7 @@ Start Claude Code in your project. Use an Opus model for the session.
 | `/forgetemple:factory <feature>` | Starts a job in a git worktree (a second copy of the repository in a different folder). |
 | `/forgetemple:factory <path to spec or issue file>` | Starts a job from an existing file. |
 | `/forgetemple:factory --branch <feature>` | Starts a job on a branch in the same folder. |
-| `/forgetemple:factory rework <job-id> <note>` | Changes a job after the pull request is open. |
+| `/forgetemple:factory rework <job-id> <note>` | Changes a job after the pull request is open. It updates the PR description to the new decision and adds a short PR comment that says what changed. |
 | `/forgetemple:factory clean <job-id>` | Removes the worktree and the local branch after the merge. |
 
 - Worktree mode puts the work in `../<repo-name>-factory/<job-id>`. Your main folder stays clean. You can run one job per Claude Code session at the same time.
@@ -165,6 +165,7 @@ Each job has a folder `factory/jobs/<job-id>/`. Git ignores it.
 | `round-N/review-security.md` | `reviewer-security` | Findings. `VERDICT: PASS` or `CHANGES`. |
 | `decision.md` | `approver` | Risk summary. `APPROVE` or `ESCALATE`. Becomes the pull request text. |
 | `rework-K.md` | orchestrator | Your rework note. |
+| `rework-K-comment.md` | `scripts/rework-comment.sh` | Short PR comment for rework K: your note, the new commits, the changed files, the review verdicts, and the decision. No model writes it. |
 
 ## Change the factory
 

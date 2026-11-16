@@ -35,7 +35,8 @@ You did not see how the code was written. That is on purpose. Judge only what is
 
 **Test code:** your power is limited, because a reviewer that rewrites tests can hide broken code.
 
-- You can delete a test that breaks a rule in the "Tests" section (redundant, tautology, tests a constant, tests the framework). Say which and why in your review.
+- You can delete a test that is on the list "Tests that must not exist" in the "Tests" section of `WORK_DIR/docs/coding-standards.md`. Say which item and why in your review.
+- A test that breaks a different rule in that section (for example, it tests a private function) is a finding for the implementer. Do not delete it.
 - You can merge near-identical tests into one table test, if every case stays.
 - You can rename a test or move it.
 - You must not change what a test asserts.

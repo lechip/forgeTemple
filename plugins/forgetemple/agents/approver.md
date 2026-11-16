@@ -11,7 +11,7 @@ You write the decision file for one job. The human reads it on the pull request 
 
 ## Steps
 
-1. Read `JOB_DIR/spec.md`, `JOB_DIR/build.md`, each `JOB_DIR/round-*/review-*.md`, and each `JOB_DIR/rework-*.md`.
+1. Read `JOB_DIR/spec.md`, `JOB_DIR/build.md`, each `JOB_DIR/round-*/review-*.md`, and each `JOB_DIR/rework-*.md`. If `JOB_DIR/issue.md` exists, read its `Issue:` line.
 2. In `WORK_DIR`, run `git diff <BASE>...HEAD --stat` and read the diff.
 3. Check each acceptance criterion: is it met, and which test or file is the evidence? Check one criterion yourself by reading the code and the test. Do not only trust `build.md`.
 4. Run `git merge-tree --write-tree <BASE> HEAD` to see if the branch merges without conflicts.
@@ -45,6 +45,8 @@ APPROVE
 ## Summary
 <What this change does. 2 to 4 lines.>
 
+Closes #<number>
+
 ## Risk: <Low | Medium | High>
 <Why. Is it easy to undo? What can it break?>
 
@@ -67,5 +69,7 @@ APPROVE
 ```
 
 The first line must be exactly `APPROVE` or `ESCALATE`.
+
+Write the `Closes #<number>` line only when `JOB_DIR/issue.md` exists. Use the number from its `Issue:` line. GitHub then closes the issue when the pull request is merged. Without `issue.md`, leave the line out.
 
 Your chat reply is one line: the recommendation and the file path.

@@ -135,6 +135,7 @@ Start Claude Code in your project. Use an Opus model for the session.
 | `/forgetemple:init` | Sets up or refreshes the factory files in the project. |
 | `/forgetemple:factory <feature>` | Starts a job in a git worktree (a second copy of the repository in a different folder). |
 | `/forgetemple:factory <path to spec or issue file>` | Starts a job from an existing file. |
+| `/forgetemple:factory #<number>` or `/forgetemple:factory <issue URL>` | Starts a job from a GitHub issue. The job keeps a copy of the issue in `issue.md`, and the pull request closes the issue when you merge it. Needs the `gh` tool. |
 | `/forgetemple:factory --branch <feature>` | Starts a job on a branch in the same folder. |
 | `/forgetemple:factory rework <job-id> <note>` | Changes a job after the pull request is open. It updates the PR description to the new decision and adds a short PR comment that says what changed. |
 | `/forgetemple:factory clean <job-id>` | Removes the worktree and the local branch after the merge. |
@@ -159,6 +160,7 @@ Each job has a folder `factory/jobs/<job-id>/`. Git ignores it.
 | File | Writer | Content |
 | --- | --- | --- |
 | `job.json` | orchestrator | State of the job. The dashboard reads it. |
+| `issue.md` | `spec-writer` | Copy of the GitHub issue, when the input is an issue. Agents read this copy, not the live issue. |
 | `spec.md` | `spec-writer` | Acceptance criteria and tasks. |
 | `build.md` | `implementer` | What was built and the check results. |
 | `round-N/review-code.md` | `reviewer-code` | What it fixed. `VERDICT: PASS` or `CHANGES`. |

@@ -1,7 +1,7 @@
 ---
 name: factory
-description: Run the software factory. Takes a feature description or a spec/issue file and drives it through spec, TDD implementation, code review, security review, approval, and a pull request. Use for "/forgetemple:factory <feature>", "/forgetemple:factory --branch <feature>", "/forgetemple:factory rework <job-id> <note>", "/forgetemple:factory clean <job-id>".
-argument-hint: "[--branch] <feature or path to spec file> | rework <job-id> <note> | clean <job-id>"
+description: Run the software factory. Takes a feature description, a spec/issue file, or a GitHub issue (#123) and drives it through spec, TDD implementation, code review, security review, approval, and a pull request. Use for "/forgetemple:factory <feature>", "/forgetemple:factory --branch <feature>", "/forgetemple:factory rework <job-id> <note>", "/forgetemple:factory clean <job-id>".
+argument-hint: "[--branch] <feature | path to spec file | #issue> | rework <job-id> <note> | clean <job-id>"
 model: opus
 ---
 
@@ -58,10 +58,12 @@ Pass the resolved model each time you start the agent. Record the resolved model
 |---|---|
 | `rework <job-id> <note>` | Rework |
 | `clean <job-id>` | Clean |
-| `--branch <feature or file>` | New job, branch mode |
-| `<feature or file>` | New job, worktree mode |
+| `--branch <feature, file, or issue>` | New job, branch mode |
+| `<feature, file, or issue>` | New job, worktree mode |
 
 If the feature text is an existing file path, that file is the input spec.
+
+If the feature text is `#<number>` or a GitHub issue URL, that GitHub issue is the input. The `spec-writer` saves a copy in `JOB_DIR/issue.md`. After that, all agents use the copy, not the live issue.
 
 ## job.json
 
@@ -105,6 +107,7 @@ If the feature text is an existing file path, that file is the input spec.
 2. Run `git status --porcelain` in `REPO`. In branch mode, the checkout must be clean. If it is not, stop and tell the human.
 3. Record `BASE`.
 4. Resolve the agent models (see "Agents and models").
+5. If the input is a GitHub issue: run `gh issue view <number or URL> --json title,state` in `REPO`. If the command fails or the issue is closed, stop and tell the human. Use the issue title for the job title and the slug.
 
 ### 1. Create the job
 
@@ -118,8 +121,8 @@ If the feature text is an existing file path, that file is the input spec.
 
 ### 2. Spec
 
-1. Start `spec-writer`. Give it the feature text, or the path of the input spec file.
-2. It writes `JOB_DIR/spec.md`. Its last line is `STATUS: READY` or `STATUS: BLOCKED`.
+1. Start `spec-writer`. Give it the feature text, the path of the input spec file, or the issue (`#<number>` or URL).
+2. It writes `JOB_DIR/spec.md`. Its last line is `STATUS: READY` or `STATUS: BLOCKED`. For an issue, it also writes `JOB_DIR/issue.md`.
 3. On `BLOCKED`: set `blocked`, show the human the open questions, and stop.
 
 ### 3. Stop 1: human approves the spec

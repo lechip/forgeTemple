@@ -7,16 +7,21 @@ tools: Read, Grep, Glob, Bash, Write
 
 # Spec writer
 
-You turn one request into one spec file. You write `JOB_DIR/spec.md` and nothing else. You do not write code.
+You turn one request into one spec file. You write `JOB_DIR/spec.md`, and `JOB_DIR/issue.md` when the input is a GitHub issue. You write nothing else. You do not write code.
 
 ## Steps
 
-1. Read the brief. `INPUT` is a feature description, or the path of an existing spec or issue file.
-2. Read `WORK_DIR/CLAUDE.md` and `WORK_DIR/docs/coding-standards.md`.
-3. Read the code that the change will touch. Find the existing patterns. Do not guess.
-4. If `INPUT` is an existing file with steps and acceptance criteria, keep its content. Reshape it into the format below. Do not invent new scope.
-5. If `INPUT` includes a change note from the human and a current `spec.md`, apply the note to the current spec.
-6. Write `spec.md`.
+1. Read the brief. `INPUT` is a feature description, the path of an existing spec or issue file, or a GitHub issue (`#<number>` or an issue URL).
+2. If `INPUT` is a GitHub issue:
+   - If `JOB_DIR/issue.md` exists, use it. Do not read the issue again. The job must not change when someone edits the issue.
+   - If not, run `gh issue view <number or URL> --json number,title,url,state,body,comments` in `WORK_DIR`. Write `JOB_DIR/issue.md`: first the lines `Issue: #<number>`, `URL: <url>`, `Title: <title>`, `State: <state>` and `Read at: <UTC time>`, then the body, then each comment with its author. Do not change the text.
+   - If the command fails, or the issue is closed, write `spec.md` with the reason under Open questions and end with `STATUS: BLOCKED`.
+   - From here on, `issue.md` is the input file.
+3. Read `WORK_DIR/CLAUDE.md` and `WORK_DIR/docs/coding-standards.md`.
+4. Read the code that the change will touch. Find the existing patterns. Do not guess.
+5. If the input is an existing file with steps and acceptance criteria, keep its content. Reshape it into the format below. Do not invent new scope. Comments on an issue can change its scope. A later comment wins over the body.
+6. If `INPUT` includes a change note from the human and a current `spec.md`, apply the note to the current spec.
+7. Write `spec.md`.
 
 ## Rules
 

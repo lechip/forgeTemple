@@ -44,6 +44,7 @@
   .tag.warn { color: var(--wait); border-color: var(--wait); }
   .tag.bad { color: var(--bad); border-color: var(--bad); }
   .blocked { margin-top: 8px; color: var(--bad); font-size: 13px; }
+  .models { margin-top: 8px; color: var(--muted); font-size: 12px; }
   a { color: var(--now); }
   .empty { color: var(--muted); padding: 32px 0; text-align: center; }
   code { font-family: ui-monospace, Menlo, monospace; font-size: 13px; }
@@ -59,7 +60,7 @@
 </main>
 <script>
   // Reads factory/jobs/<id>/job.json through the directory listing of
-  // `python3 -m http.server`. See README.md for the start command.
+  // `python3 -m http.server 5175 --directory factory`, started from the project root.
   const STAGES = [
     ['spec', 'Spec'],
     ['spec-approval', 'Your OK'],
@@ -141,6 +142,8 @@
     }
     if (tags.children.length) card.append(tags);
     if (job.blocked) card.append(el('div', 'blocked', 'Stopped: ' + job.blocked));
+    const models = job.models && typeof job.models === 'object' ? Object.entries(job.models) : [];
+    if (models.length) card.append(el('div', 'models', 'Models: ' + models.map(([a, m]) => `${a} ${m}`).join(' · ')));
     return card;
   }
 
@@ -153,7 +156,7 @@
       jobs.sort((a, b) => String(b.id).localeCompare(String(a.id)));
       root.replaceChildren(...(jobs.length
         ? jobs.map(renderJob)
-        : [el('div', 'empty', 'No jobs yet. Run /factory <feature> in Claude Code.')]));
+        : [el('div', 'empty', 'No jobs yet. Run /forgetemple:factory <feature> in Claude Code.')]));
       status.textContent = `${jobs.length} job(s) · ${new Date().toLocaleTimeString()}`;
     } catch {
       const help = el('div', 'empty');

@@ -1,6 +1,2 @@
-# Job folders are runtime state. They stay on disk only.
-factory/jobs/*
-!factory/jobs/.gitkeep
-
 .DS_Store
 node_modules/

@@ -1,0 +1,83 @@
+{
+  "name": "forgetemple",
+  "displayName": "forgeTemple",
+  "version": "0.2.0",
+  "description": "A small software factory: spec, TDD build, code review, security review, approval, and a pull request.",
+  "author": {
+    "name": "lechip"
+  },
+  "repository": "https://github.com/lechip/forgeTemple",
+  "keywords": [
+    "factory",
+    "tdd",
+    "code-review",
+    "typescript"
+  ],
+  "userConfig": {
+    "spec_writer_model": {
+      "type": "string",
+      "title": "Model for spec-writer",
+      "description": "Model the spec-writer agent runs on. 'default' uses the model line of the agent file. A 'Factory models' section in the project CLAUDE.md overrides this.",
+      "options": [
+        "default",
+        "sonnet",
+        "opus",
+        "haiku",
+        "fable"
+      ],
+      "default": "sonnet"
+    },
+    "implementer_model": {
+      "type": "string",
+      "title": "Model for implementer",
+      "description": "Model the implementer agent runs on. 'default' uses the model line of the agent file. A 'Factory models' section in the project CLAUDE.md overrides this.",
+      "options": [
+        "default",
+        "sonnet",
+        "opus",
+        "haiku",
+        "fable"
+      ],
+      "default": "sonnet"
+    },
+    "reviewer_code_model": {
+      "type": "string",
+      "title": "Model for reviewer-code",
+      "description": "Model the reviewer-code agent runs on. 'default' uses the model line of the agent file. A 'Factory models' section in the project CLAUDE.md overrides this.",
+      "options": [
+        "default",
+        "sonnet",
+        "opus",
+        "haiku",
+        "fable"
+      ],
+      "default": "sonnet"
+    },
+    "reviewer_security_model": {
+      "type": "string",
+      "title": "Model for reviewer-security",
+      "description": "Model the reviewer-security agent runs on. 'default' uses the model line of the agent file. A 'Factory models' section in the project CLAUDE.md overrides this.",
+      "options": [
+        "default",
+        "sonnet",
+        "opus",
+        "haiku",
+        "fable"
+      ],
+      "default": "sonnet"
+    },
+    "approver_model": {
+      "type": "string",
+      "title": "Model for approver",
+      "description": "Model the approver agent runs on. 'default' uses the model line of the agent file. A 'Factory models' section in the project CLAUDE.md overrides this.",
+      "options": [
+        "default",
+        "sonnet",
+        "opus",
+        "haiku",
+        "fable"
+      ],
+      "default": "sonnet"
+    }
+  }
+}

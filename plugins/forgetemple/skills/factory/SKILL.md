@@ -1,6 +1,6 @@
 ---
 name: factory
-description: Run the software factory. Takes a feature description or a spec/issue file and drives it through spec, TDD implementation, code review, security review, approval, and a pull request. Use for "/factory <feature>", "/factory --branch <feature>", "/factory rework <job-id> <note>", "/factory clean <job-id>".
+description: Run the software factory. Takes a feature description or a spec/issue file and drives it through spec, TDD implementation, code review, security review, approval, and a pull request. Use for "/forgetemple:factory <feature>", "/forgetemple:factory --branch <feature>", "/forgetemple:factory rework <job-id> <note>", "/forgetemple:factory clean <job-id>".
 argument-hint: "[--branch] <feature or path to spec file> | rework <job-id> <note> | clean <job-id>"
 model: opus
 ---
@@ -29,6 +29,27 @@ You are the orchestrator. You move one job through the pipeline. You give work t
 - `BRANCH` = `factory/<job-id>`
 - `BASE` = the branch that `REPO` has checked out when the job starts.
 
+## Agents and models
+
+The agents belong to this plugin. Start each one with the agent type `forgetemple:<name>`, for example `forgetemple:implementer`. In this file, a bare name such as `implementer` means that agent.
+
+Each agent runs on the model chosen for it. Resolve the models once, in preflight:
+
+1. If `REPO/CLAUDE.md` has a "Factory models" section, a line in it such as `- implementer: opus` sets the model for that agent in this project.
+2. Otherwise use the plugin setting:
+
+| Agent | Plugin setting |
+|---|---|
+| `spec-writer` | `${user_config.spec_writer_model}` |
+| `implementer` | `${user_config.implementer_model}` |
+| `reviewer-code` | `${user_config.reviewer_code_model}` |
+| `reviewer-security` | `${user_config.reviewer_security_model}` |
+| `approver` | `${user_config.approver_model}` |
+
+3. A model is valid only if it is one of `sonnet`, `opus`, `haiku`, `fable`. If the value is anything else (empty, or text that still starts with `${`), use `default`: start the agent without a model, so the model line of its agent file applies.
+
+Pass the resolved model each time you start the agent. Record the resolved models in `job.json`.
+
 ## Arguments
 
 `$ARGUMENTS` selects the command:
@@ -55,6 +76,13 @@ If the feature text is an existing file path, that file is the input spec.
   "base": "main",
   "stage": "build",
   "round": 1,
+  "models": {
+    "spec-writer": "sonnet",
+    "implementer": "opus",
+    "reviewer-code": "sonnet",
+    "reviewer-security": "sonnet",
+    "approver": "default"
+  },
   "verdicts": { "code": null, "security": null },
   "decision": null,
   "prUrl": null,
@@ -67,14 +95,16 @@ If the feature text is an existing file path, that file is the input spec.
 - `blocked` is `null`, or a short sentence that says why the job waits for the human. `stage` keeps the step where the job stopped.
 - `verdicts` hold `PASS`, `CHANGES`, or `null` for the current round.
 - `decision` is `APPROVE`, `ESCALATE`, or `null`.
+- `models` holds the model of each agent for this job, from "Agents and models". `default` means the model line of the agent file.
 
 ## New job
 
 ### 0. Preflight
 
-1. Read the "Commands" section of `REPO/CLAUDE.md`. You need: setup, test, lint, typecheck, build. If the section is missing, stop and tell the human to add it (see `README.md`).
+1. Read the "Commands" section of `REPO/CLAUDE.md`. You need: setup, test, lint, typecheck, build. If the section is missing, or `REPO/factory/dashboard.html` is missing, stop and tell the human to run `/forgetemple:init`.
 2. Run `git status --porcelain` in `REPO`. In branch mode, the checkout must be clean. If it is not, stop and tell the human.
 3. Record `BASE`.
+4. Resolve the agent models (see "Agents and models").
 
 ### 1. Create the job
 
@@ -84,7 +114,7 @@ If the feature text is an existing file path, that file is the input spec.
    - Worktree mode: `git worktree add -b factory/<job-id> ../<repo-name>-factory/<job-id> <BASE>`, then run the setup command in `WORK_DIR`.
    - Branch mode: `git switch -c factory/<job-id>`.
 4. Write `job.json` with `stage: "spec"`.
-5. Tell the human the job id and how to open the dashboard (see `README.md`).
+5. Tell the human the job id, the models, and how to open the dashboard: run `python3 -m http.server 5175 --directory factory` in `REPO`, then open <http://localhost:5175/dashboard.html>.
 
 ### 2. Spec
 
@@ -154,15 +184,15 @@ Give the human a short report:
 - The PR link, and if it is a draft, why.
 - The risk level from `decision.md`.
 - The "Manual checks" list from `decision.md`.
-- The next commands: `/factory rework <job-id> <note>` or, after the merge, `/factory clean <job-id>`.
+- The next commands: `/forgetemple:factory rework <job-id> <note>` or, after the merge, `/forgetemple:factory clean <job-id>`.
 
 Then end your turn.
 
 ## Rework
 
-`/factory rework <job-id> <note>`
+`/forgetemple:factory rework <job-id> <note>`
 
-1. Read `job.json`. The job must exist and must not be `done`.
+1. Read `job.json`. The job must exist and must not be `done`. Resolve the agent models again and update `models`.
 2. Write the note to `JOB_DIR/rework-<k>.md` (the human's words, unchanged). This file is the only file you write other than `job.json`.
 3. Add 1 to `round`. Set verdicts and `decision` to `null`, `blocked` to `null`, `stage: "build"`. The rework round limit starts again from zero.
 4. Start a new `implementer` and give it `rework-<k>.md`.
@@ -173,7 +203,7 @@ Then end your turn.
 
 ## Clean
 
-`/factory clean <job-id>`
+`/forgetemple:factory clean <job-id>`
 
 1. Read `job.json`.
 2. If `prUrl` is set, run `gh pr view <prUrl> --json state`. If the state is not `MERGED`, ask the human to confirm before you continue.
@@ -183,7 +213,7 @@ Then end your turn.
 
 ## Agent brief
 
-Give every agent these lines, and nothing more unless the step says so:
+Start the agent as `forgetemple:<name>` with its resolved model. Give it these lines, and nothing more unless the step says so:
 
 ```
 JOB_DIR: <absolute path>

@@ -1,0 +1,14 @@
+{
+  "name": "forgetemple",
+  "description": "The forgeTemple software factory",
+  "owner": {
+    "name": "lechip"
+  },
+  "plugins": [
+    {
+      "name": "forgetemple",
+      "source": "./plugins/forgetemple",
+      "description": "A small software factory: spec, TDD build, code review, security review, approval, and a pull request."
+    }
+  ]
+}

@@ -1,8 +1,8 @@
 # forgeTemple
 
-A small software factory for Claude Code. You give it a feature. It writes a spec, builds the feature with tests first, reviews it, and opens a pull request.
+A small software factory for **Claude Code**, **Google Antigravity 2.0**, and **OpenAI Codex**. You give it a feature. It writes a spec, builds the feature with tests first, reviews it, and opens a pull request.
 
-It is a Claude Code plugin for TypeScript projects. You install it in a project, and you keep the project rules in your own repository.
+It is a cross-environment plugin for TypeScript projects. You install it in a project, and you keep the project rules in your own repository.
 
 ## How one job runs
 
@@ -25,18 +25,20 @@ flowchart TD
     draft --> stop2
 ```
 
-| Part | Default model | Changes code |
-| --- | --- | --- |
-| Orchestrator (your session) | Opus | No |
-| `spec-writer` | Sonnet | No |
-| `implementer` | Sonnet | Yes |
-| `reviewer-code` | Sonnet | Yes, behaviour stays the same |
-| `reviewer-security` | Sonnet | No |
-| `approver` | Sonnet | No |
+| Part | Claude default | Antigravity (Google) default | Codex (OpenAI) default | Changes code |
+| --- | --- | --- | --- | --- |
+| Orchestrator (your session) | `opus` | `argon` / `carbon` / `neon` | `astra` / `sol` | No |
+| `spec-writer` | `sonnet` | `neon` | `sol` | No |
+| `implementer` | `sonnet` | `neon` | `sol` | Yes |
+| `reviewer-code` | `sonnet` | `neon` | `sol` | Yes, behaviour stays the same |
+| `reviewer-security` | `sonnet` | `neon` | `sol` | No |
+| `approver` | `sonnet` | `neon` | `sol` | No |
 
 ## Install in a project
 
-forgeTemple is a Claude Code plugin. This repository is also its marketplace.
+forgeTemple works as a plugin in Claude Code, Google Antigravity 2.0, and OpenAI Codex CLI.
+
+### Claude Code
 
 Run these from the root of your project:
 
@@ -52,7 +54,26 @@ claude plugin install forgetemple@forgetemple --scope project \
 
 Each `--config` is optional. Inside Claude Code, `/plugin install forgetemple@forgetemple` asks for the same settings in a dialog.
 
-Then start Claude Code in your project and run:
+### Google Antigravity 2.0
+
+Install globally on your machine so it is available in every project:
+
+```bash
+agy plugin install <path-to-forgeTemple>/plugins/forgetemple
+```
+
+Or copy/link `plugins/forgetemple` into `~/.gemini/config/plugins/forgetemple`.
+
+### OpenAI Codex CLI
+
+```bash
+codex plugin marketplace add lechip/forgeTemple
+codex plugin add forgetemple@forgetemple
+```
+
+### Initialize a project
+
+Start your agent session in your project and run:
 
 ```
 /forgetemple:init
@@ -66,22 +87,27 @@ Then start Claude Code in your project and run:
 | `factory/jobs/.gitkeep` | Creates it. |
 | `docs/coding-standards.md` | Copies the template only if the file does not exist. |
 | `.gitignore` | Adds the `factory/jobs` lines if they are missing. |
-| `CLAUDE.md` | If there is no "Commands" section, drafts one from `package.json` and asks you before it writes. |
+| `CLAUDE.md` (or `AGENTS.md` / `GEMINI.md`) | If there is no "Commands" section, drafts one from `package.json` and asks you before it writes. |
 
 Then edit `docs/coding-standards.md` for your project.
 
 ### Update
 
 ```bash
+# Claude Code
 claude plugin marketplace update forgetemple
 claude plugin update forgetemple@forgetemple
+
+# Codex CLI
+codex plugin marketplace upgrade forgetemple
+codex plugin add forgetemple@forgetemple
 ```
 
 Then run `/forgetemple:init` again. It refreshes the dashboard and keeps your own files.
 
 ### The Commands section
 
-The factory reads the project commands from `CLAUDE.md`. `init` drafts this section. You can also write it yourself:
+The factory reads the project commands from `CLAUDE.md` (or `AGENTS.md` / `GEMINI.md` if `CLAUDE.md` does not exist). `init` drafts this section. You can also write it yourself:
 
 ```markdown
 ## Commands
@@ -99,20 +125,26 @@ The factory reads the project commands from `CLAUDE.md`. `init` drafts this sect
 
 ## Models
 
-Each agent runs on the model you choose. Valid values: `default`, `sonnet`, `opus`, `haiku`, `fable`. `default` uses the `model:` line of the agent file, which is `sonnet`.
+Each agent runs on the model you choose:
+
+- **Claude Code** (default `sonnet`): `default`, `sonnet`, `opus`, `haiku`, `fable`
+- **Antigravity / Google** (default `neon`): `default`, `neon`, `argon`, `hydrogen`, `carbon`
+- **Codex / OpenAI** (default `sol`): `default`, `sol`, `astra`, `terra`, `luna`
+
+`default` resolves automatically to `sonnet` in Claude Code, `neon` (`gemini-4-neon-medium`) in Antigravity, and `sol` (`gpt-6.2-sol`) in Codex.
 
 The factory picks the model of each agent in this order:
 
-1. A "Factory models" section in the project `CLAUDE.md`. It is committed, so it holds for everyone in the project:
+1. A "Factory models" section in the project `CLAUDE.md` (or `AGENTS.md` / `GEMINI.md`). It is committed, so it holds for everyone in the project:
 
    ```markdown
    ## Factory models
 
-   - implementer: opus
-   - reviewer-code: opus
+   - implementer: neon
+   - reviewer-code: neon
    ```
 
-2. The plugin settings. They are yours, for all projects on your machine. Set them at install with `--config <setting>=<model>`, and change them later with `/config` or `/plugin configure forgetemple@forgetemple`.
+2. The plugin settings (in Claude Code). They are yours, for all projects on your machine. Set them at install with `--config <setting>=<model>`, and change them later with `/config` or `/plugin configure forgetemple@forgetemple`.
 
 | Agent | Setting |
 | --- | --- |
@@ -122,13 +154,11 @@ The factory picks the model of each agent in this order:
 | `reviewer-security` | `reviewer_security_model` |
 | `approver` | `approver_model` |
 
-The orchestrator runs on Opus. That is the `model:` line of `plugins/forgetemple/skills/factory/SKILL.md`, and you can only change it in the plugin itself.
-
 Each job records its models in `job.json`, and the dashboard shows them. A change applies to the next job.
 
 ## Use
 
-Start Claude Code in your project. Use an Opus model for the session.
+Start your agent session in your project.
 
 | Command | What it does |
 | --- | --- |
@@ -140,7 +170,7 @@ Start Claude Code in your project. Use an Opus model for the session.
 | `/forgetemple:factory rework <job-id> <note>` | Changes a job after the pull request is open. It updates the PR description to the new decision and adds a short PR comment that says what changed. |
 | `/forgetemple:factory clean <job-id>` | Removes the worktree and the local branch after the merge. |
 
-- Worktree mode puts the work in `../<repo-name>-factory/<job-id>`. Your main folder stays clean. You can run one job per Claude Code session at the same time.
+- Worktree mode puts the work in `../<repo-name>-factory/<job-id>`. Your main folder stays clean. You can run one job per session at the same time.
 - Branch mode needs a clean checkout. Run one job at a time.
 - The branch name is `factory/<job-id>`.
 - With no GitHub remote or no `gh` tool, the factory keeps the branch on your disk and stops.
@@ -174,7 +204,7 @@ Each job has a folder `factory/jobs/<job-id>/`. Git ignores it.
 In your project:
 
 - Code rules and test rules: edit `docs/coding-standards.md`.
-- Commands and models: edit the "Commands" and "Factory models" sections of `CLAUDE.md`.
+- Commands and models: edit the "Commands" and "Factory models" sections of `CLAUDE.md` (or `AGENTS.md` / `GEMINI.md`).
 
 In the plugin (fork this repository, and add your fork as the marketplace):
 
@@ -183,9 +213,12 @@ In the plugin (fork this repository, and add your fork as the marketplace):
 - A new reviewer (for example UX or UI): copy `reviewer-security.md`, change the checks, and add a step in `SKILL.md`. Add its verdict to `job.json` and to `templates/dashboard.html`. Add a model setting for it to `.claude-plugin/plugin.json`.
 - Automatic merge: change step 8 and step 9 in `SKILL.md`.
 
-To try a change without installing, start Claude Code with `claude --plugin-dir <path to>/plugins/forgetemple`. If a plugin setting has no value there, the agent uses `default`, unless the project has a "Factory models" section.
+To try a change without installing in Claude Code, start with `claude --plugin-dir <path to>/plugins/forgetemple`.
 
-Check the plugin with `claude plugin validate .` from the repository root.
+Check the plugin with:
+- `agy plugin validate plugins/forgetemple --strict` (Antigravity 2.0)
+- `claude plugin validate .` (Claude Code)
+- `codex plugin marketplace add .` (Codex CLI)
 
 ## Sources
 

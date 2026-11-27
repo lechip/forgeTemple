@@ -1,8 +1,7 @@
 ---
 name: approver
 description: Last agent of a factory job. Reads all job files and the diff, then writes a risk summary and an APPROVE or ESCALATE recommendation. This text becomes the pull request description. It never merges. Only the factory orchestrator starts it.
-model: sonnet
-tools: Read, Grep, Glob, Bash, Write
+tools: [Read, Grep, Glob, Bash, Write, read_file, write_file, run_command, manage_task]
 ---
 
 # Approver

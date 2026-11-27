@@ -2,7 +2,6 @@
 name: factory
 description: Run the software factory. Takes a feature description, a spec/issue file, or a GitHub issue (#123) and drives it through spec, TDD implementation, code review, security review, approval, and a pull request. Use for "/forgetemple:factory <feature>", "/forgetemple:factory --branch <feature>", "/forgetemple:factory rework <job-id> <note>", "/forgetemple:factory clean <job-id>".
 argument-hint: "[--branch] <feature | path to spec file | #issue> | rework <job-id> <note> | clean <job-id>"
-model: opus
 ---
 
 # Factory orchestrator
@@ -21,7 +20,9 @@ You are the orchestrator. You move one job through the pipeline. You give work t
 
 ## Paths
 
+- `PLUGIN` = `${CLAUDE_PLUGIN_ROOT}` (if unexpanded and still starting with `${`, resolve `PLUGIN` as the plugin root folder two levels above this `SKILL.md` file).
 - `REPO` = the main checkout (output of `git rev-parse --show-toplevel` at the start).
+- `CONFIG_MD` = `REPO/CLAUDE.md` if it exists, else `REPO/AGENTS.md` if it exists, else `REPO/GEMINI.md`.
 - `JOB_DIR` = `REPO/factory/jobs/<job-id>` (absolute path). Git ignores it.
 - `WORK_DIR` = where the code changes happen.
   - Worktree mode (default): `REPO/../<repo-name>-factory/<job-id>`
@@ -31,11 +32,11 @@ You are the orchestrator. You move one job through the pipeline. You give work t
 
 ## Agents and models
 
-The agents belong to this plugin. Start each one with the agent type `forgetemple:<name>`, for example `forgetemple:implementer`. In this file, a bare name such as `implementer` means that agent.
+The agents belong to this plugin: `spec-writer`, `implementer`, `reviewer-code`, `reviewer-security`, `approver`.
 
 Each agent runs on the model chosen for it. Resolve the models once, in preflight:
 
-1. If `REPO/CLAUDE.md` has a "Factory models" section, a line in it such as `- implementer: opus` sets the model for that agent in this project.
+1. If `CONFIG_MD` has a "Factory models" section, a line in it such as `- implementer: opus` (or `neon`, `argon`, `sol`, `astra`, etc.) sets the model for that agent in this project.
 2. Otherwise use the plugin setting:
 
 | Agent | Plugin setting |
@@ -46,7 +47,14 @@ Each agent runs on the model chosen for it. Resolve the models once, in prefligh
 | `reviewer-security` | `${user_config.reviewer_security_model}` |
 | `approver` | `${user_config.approver_model}` |
 
-3. A model is valid only if it is one of `sonnet`, `opus`, `haiku`, `fable`. If the value is anything else (empty, or text that still starts with `${`), use `default`: start the agent without a model, so the model line of its agent file applies.
+3. Valid model names by environment:
+   - **Claude Code**: `sonnet`, `opus`, `haiku`, `fable`
+   - **Antigravity (Google)**: `neon`, `argon`, `hydrogen`, `carbon` (or explicit Antigravity model IDs such as `gemini-4-neon-high`)
+   - **Codex (OpenAI)**: `sol`, `astra`, `terra`, `luna` (or explicit Codex model slugs such as `gpt-6.2-sol`, `gpt-6.2-astra`, `gpt-6.1-terra`, `gpt-6-luna`)
+4. If the value is `default`, empty, or text that still starts with `${`, use the runtime default for your environment:
+   - **Claude Code**: `sonnet`
+   - **Antigravity (Google)**: `neon`
+   - **Codex (OpenAI)**: `sol`
 
 Pass the resolved model each time you start the agent. Record the resolved models in `job.json`.
 
@@ -97,13 +105,13 @@ If the feature text is `#<number>` or a GitHub issue URL, that GitHub issue is t
 - `blocked` is `null`, or a short sentence that says why the job waits for the human. `stage` keeps the step where the job stopped.
 - `verdicts` hold `PASS`, `CHANGES`, or `null` for the current round.
 - `decision` is `APPROVE`, `ESCALATE`, or `null`.
-- `models` holds the model of each agent for this job, from "Agents and models". `default` means the model line of the agent file.
+- `models` holds the resolved model of each agent for this job, from "Agents and models".
 
 ## New job
 
 ### 0. Preflight
 
-1. Read the "Commands" section of `REPO/CLAUDE.md`. You need: setup, test, lint, typecheck, build. If the section is missing, or `REPO/factory/dashboard.html` is missing, stop and tell the human to run `/forgetemple:init`.
+1. Read the "Commands" section of `CONFIG_MD` (`REPO/CLAUDE.md`, `REPO/AGENTS.md`, or `REPO/GEMINI.md`). You need: setup, test, lint, typecheck, build. If the section is missing, or `REPO/factory/dashboard.html` is missing, stop and tell the human to run `/forgetemple:init`.
 2. Run `git status --porcelain` in `REPO`. In branch mode, the checkout must be clean. If it is not, stop and tell the human.
 3. Record `BASE`.
 4. Resolve the agent models (see "Agents and models").
@@ -206,7 +214,7 @@ Then end your turn.
    - `NEW=$(git rev-parse HEAD)`
 7. Update the PR, in `WORK_DIR`:
    - `gh pr edit <prUrl> --body-file <JOB_DIR>/decision.md`. The PR description now shows the latest decision.
-   - `bash ${CLAUDE_PLUGIN_ROOT}/scripts/rework-comment.sh <JOB_DIR> <k> $OLD $NEW`. It writes `JOB_DIR/rework-<k>-comment.md` from the job files and git. Do not write or edit this file yourself.
+   - `bash <PLUGIN>/scripts/rework-comment.sh <JOB_DIR> <k> $OLD $NEW`. It writes `JOB_DIR/rework-<k>-comment.md` from the job files and git. Do not write or edit this file yourself.
    - `gh pr comment <prUrl> --body-file <JOB_DIR>/rework-<k>-comment.md`.
    - If the script fails, post no comment. Tell the human the error. The push in step 6 stays.
 8. Report as in step 9.
@@ -223,7 +231,13 @@ Then end your turn.
 
 ## Agent brief
 
-Start the agent as `forgetemple:<name>` with its resolved model. Give it these lines, and nothing more unless the step says so:
+Start the agent with its resolved model according to your environment:
+
+- **Claude Code**: start subagent `forgetemple:<name>` with its resolved model (`sonnet`, `opus`, `haiku`, `fable`).
+- **Antigravity (Google)**: map shorthand model names to Antigravity model IDs (`neon` → `gemini-4-neon-medium`, `argon` → `gemini-4-argon-medium`, `hydrogen` → `gemini-4-hydrogen-medium`, `carbon` → `gemini-4-carbon-medium`). If the agent's model matches your current session model, invoke subagent `<name>` with `Model: "inherit"`; otherwise spawn a fresh isolated worker via `swarm` (`action: "add"`, `model: "<resolved-id>"`, `brief: "Read and follow <PLUGIN>/agents/<name>.md.\n\n<brief lines>"`) and kill that worker after its output file is verified.
+- **Codex (OpenAI)**: map shorthand model names to Codex model slugs (`sol` → `gpt-6.2-sol`, `astra` → `gpt-6.2-astra`, `terra` → `gpt-6.1-terra`, `luna` → `gpt-6-luna`) and spawn a fresh isolated subagent via `spawn_agent` with `fork_turns: "none"`, `model: "<resolved-slug>"`, and a prompt to read and follow `<PLUGIN>/agents/<name>.md` with the brief below.
+
+Give the agent these lines, and nothing more unless the step says so:
 
 ```
 JOB_DIR: <absolute path>

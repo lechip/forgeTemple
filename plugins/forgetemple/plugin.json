@@ -1,0 +1,15 @@
+{
+  "name": "forgetemple",
+  "displayName": "forgeTemple",
+  "version": "0.4.0",
+  "description": "A small software factory: spec, TDD build, code review, security review, approval, and a pull request.",
+  "author": {
+    "name": "lechip"
+  },
+  "repository": "https://github.com/lechip/forgeTemple",
+  "suggestedPrompts": [
+    "/forgetemple:init",
+    "/forgetemple:factory <feature>",
+    "/forgetemple:factory rework <job-id> <note>"
+  ]
+}

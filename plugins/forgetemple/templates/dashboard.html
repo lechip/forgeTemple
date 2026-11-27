@@ -156,7 +156,7 @@
       jobs.sort((a, b) => String(b.id).localeCompare(String(a.id)));
       root.replaceChildren(...(jobs.length
         ? jobs.map(renderJob)
-        : [el('div', 'empty', 'No jobs yet. Run /forgetemple:factory <feature> in Claude Code.')]));
+        : [el('div', 'empty', 'No jobs yet. Run /forgetemple:factory <feature>.')]));
       status.textContent = `${jobs.length} job(s) · ${new Date().toLocaleTimeString()}`;
     } catch {
       const help = el('div', 'empty');

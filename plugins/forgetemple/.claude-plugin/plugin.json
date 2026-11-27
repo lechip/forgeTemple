@@ -1,7 +1,7 @@
 {
   "name": "forgetemple",
   "displayName": "forgeTemple",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "A small software factory: spec, TDD build, code review, security review, approval, and a pull request.",
   "author": {
     "name": "lechip"
@@ -17,67 +17,107 @@
     "spec_writer_model": {
       "type": "string",
       "title": "Model for spec-writer",
-      "description": "Model the spec-writer agent runs on. 'default' uses the model line of the agent file. A 'Factory models' section in the project CLAUDE.md overrides this.",
+      "description": "Model the spec-writer agent runs on. 'default' uses the runtime default (sonnet in Claude Code, neon in Antigravity, sol in Codex). A 'Factory models' section in the project CLAUDE.md (or AGENTS.md / GEMINI.md) overrides this.",
       "options": [
         "default",
         "sonnet",
         "opus",
         "haiku",
-        "fable"
+        "fable",
+        "neon",
+        "argon",
+        "hydrogen",
+        "carbon",
+        "sol",
+        "astra",
+        "terra",
+        "luna"
       ],
-      "default": "sonnet"
+      "default": "default"
     },
     "implementer_model": {
       "type": "string",
       "title": "Model for implementer",
-      "description": "Model the implementer agent runs on. 'default' uses the model line of the agent file. A 'Factory models' section in the project CLAUDE.md overrides this.",
+      "description": "Model the implementer agent runs on. 'default' uses the runtime default (sonnet in Claude Code, neon in Antigravity, sol in Codex). A 'Factory models' section in the project CLAUDE.md (or AGENTS.md / GEMINI.md) overrides this.",
       "options": [
         "default",
         "sonnet",
         "opus",
         "haiku",
-        "fable"
+        "fable",
+        "neon",
+        "argon",
+        "hydrogen",
+        "carbon",
+        "sol",
+        "astra",
+        "terra",
+        "luna"
       ],
-      "default": "sonnet"
+      "default": "default"
     },
     "reviewer_code_model": {
       "type": "string",
       "title": "Model for reviewer-code",
-      "description": "Model the reviewer-code agent runs on. 'default' uses the model line of the agent file. A 'Factory models' section in the project CLAUDE.md overrides this.",
+      "description": "Model the reviewer-code agent runs on. 'default' uses the runtime default (sonnet in Claude Code, neon in Antigravity, sol in Codex). A 'Factory models' section in the project CLAUDE.md (or AGENTS.md / GEMINI.md) overrides this.",
       "options": [
         "default",
         "sonnet",
         "opus",
         "haiku",
-        "fable"
+        "fable",
+        "neon",
+        "argon",
+        "hydrogen",
+        "carbon",
+        "sol",
+        "astra",
+        "terra",
+        "luna"
       ],
-      "default": "sonnet"
+      "default": "default"
     },
     "reviewer_security_model": {
       "type": "string",
       "title": "Model for reviewer-security",
-      "description": "Model the reviewer-security agent runs on. 'default' uses the model line of the agent file. A 'Factory models' section in the project CLAUDE.md overrides this.",
+      "description": "Model the reviewer-security agent runs on. 'default' uses the runtime default (sonnet in Claude Code, neon in Antigravity, sol in Codex). A 'Factory models' section in the project CLAUDE.md (or AGENTS.md / GEMINI.md) overrides this.",
       "options": [
         "default",
         "sonnet",
         "opus",
         "haiku",
-        "fable"
+        "fable",
+        "neon",
+        "argon",
+        "hydrogen",
+        "carbon",
+        "sol",
+        "astra",
+        "terra",
+        "luna"
       ],
-      "default": "sonnet"
+      "default": "default"
     },
     "approver_model": {
       "type": "string",
       "title": "Model for approver",
-      "description": "Model the approver agent runs on. 'default' uses the model line of the agent file. A 'Factory models' section in the project CLAUDE.md overrides this.",
+      "description": "Model the approver agent runs on. 'default' uses the runtime default (sonnet in Claude Code, neon in Antigravity, sol in Codex). A 'Factory models' section in the project CLAUDE.md (or AGENTS.md / GEMINI.md) overrides this.",
       "options": [
         "default",
         "sonnet",
         "opus",
         "haiku",
-        "fable"
+        "fable",
+        "neon",
+        "argon",
+        "hydrogen",
+        "carbon",
+        "sol",
+        "astra",
+        "terra",
+        "luna"
       ],
-      "default": "sonnet"
+      "default": "default"
     }
   }
 }

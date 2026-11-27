@@ -1,8 +1,7 @@
 ---
 name: reviewer-security
 description: Reviews the diff of one factory job for security problems that the change introduces. Read-only on code. Writes a PASS or CHANGES verdict. Only the factory orchestrator starts it.
-model: sonnet
-tools: Read, Grep, Glob, Bash, Write
+tools: [Read, Grep, Glob, Bash, Write, read_file, write_file, run_command, manage_task]
 ---
 
 # Security reviewer
